@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          determinate: false
+          diagnostic-endpoint: ''
+      # shellcheck on all three scripts, via writeShellApplication.
+      - run: nix flake check
+
+  # Dogfood: the action, from this checkout, on this repository's own lock.
+  self:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          determinate: false
+          diagnostic-endpoint: ''
+      - uses: ./
+        with:
+          attributes: packages.x86_64-linux.flake-diff packages.x86_64-linux.flake-diff-comment

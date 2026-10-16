@@ -1,0 +1,72 @@
+name: flake-diff-action
+description: >-
+  Report what a flake.lock change does to what a flake builds, from
+  evaluation alone, as a pull request comment. Composite: needs `nix` on
+  PATH, nothing else; no Node.
+author: systemstart
+
+inputs:
+  attributes:
+    description: >-
+      Flake attributes to compare, whitespace separated, without '.#'.
+      Default: packages.<system>.default.
+    default: ''
+  base:
+    description: >-
+      Git ref or commit whose flake.lock is the baseline. Default: the pull
+      request's base commit, or HEAD^ outside a pull request.
+    default: ''
+  key:
+    description: >-
+      awk ERE; only packages whose name matches are listed, the rest are
+      counted. Default: list every changed package.
+    default: ''
+  impure:
+    description: Evaluate with --impure (e.g. for NIXPKGS_ALLOW_UNFREE in env).
+    default: 'false'
+  build:
+    description: Also build both sides and append `nix store diff-closures`.
+    default: 'false'
+  working-directory:
+    description: Directory holding flake.nix and flake.lock.
+    default: '.'
+  comment:
+    description: Post or update a comment on the pull request.
+    default: 'true'
+  token:
+    description: Token allowed to comment on the pull request.
+    default: ${{ github.token }}
+  api-url:
+    description: >-
+      Forge API base, e.g. https://codeberg.org/api/v1. Default: taken from
+      the runner (FORGEJO_API_URL, then GITHUB_API_URL).
+    default: ''
+
+outputs:
+  changed:
+    description: "'true' if at least one attribute's derivation changed."
+    value: ${{ steps.report.outputs.changed }}
+  report:
+    description: Path to the plain-text report.
+    value: ${{ steps.report.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: report
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        IN_ATTRIBUTES: ${{ inputs.attributes }}
+        IN_BASE: ${{ inputs.base || github.event.pull_request.base.sha }}
+        IN_KEY: ${{ inputs.key }}
+        IN_IMPURE: ${{ inputs.impure }}
+        IN_BUILD: ${{ inputs.build }}
+        IN_COMMENT: ${{ inputs.comment }}
+        PR: ${{ github.event.pull_request.number }}
+        SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        REPO: ${{ github.repository }}
+        TOKEN: ${{ inputs.token }}
+        IN_API_URL: ${{ inputs.api-url }}
+      run: '"$ACTION_PATH/action.sh"'
