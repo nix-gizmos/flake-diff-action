@@ -85,10 +85,14 @@ self-hosted runner, or an installer step earlier in the job. Its own tools
 Outputs: `changed` (`'true'` if any attribute's derivation changed) and
 `report` (path to the plain-text report).
 
-On every push to the PR, the action edits its earlier comment instead of
-adding a new one; a hidden marker identifies it. A PR from a fork gets a
-read-only token on both forges, so the comment is skipped with a warning, and
-the report is still in the job log.
+The comment carries the whole report, never a cut-down one. GitHub refuses a
+comment over 65536 characters, so a longer report (a nixpkgs bump with
+`--all`, say) is split at line boundaries over as many comments as it needs,
+numbered "part 2 of 3" and so on. On every push to the PR the action edits
+its earlier comments instead of adding new ones, and deletes the parts a
+shorter report no longer needs; a hidden marker per part identifies them. A
+PR from a fork gets a read-only token on both forges, so the comment is
+skipped with a warning, and the report is still in the job log.
 
 > [!WARNING]
 > Use `pull_request`, never `pull_request_target`. Evaluating a flake runs
@@ -115,7 +119,7 @@ jobs:
           git config http.extraHeader "Authorization: token ${{ forge.token }}"
           git fetch -q --depth=1 origin "${{ forge.sha }}"
           git checkout -q FETCH_HEAD
-      - uses: https://github.com/nix-gizmos/flake-diff-action@v1
+      - uses: https://github.com/nix-gizmos/flake-diff-action@<commit> # v0.1.0
         with:
           key: '^(openssl|linux|qemu.*)$'
 ```
@@ -133,13 +137,38 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: DeterminateSystems/nix-installer-action@v23   # or any other way to get Nix
-      - uses: nix-gizmos/flake-diff-action@v1
+      - uses: nix-gizmos/flake-diff-action@<commit> # v0.1.0
         with:
           attributes: packages.x86_64-linux.default
 ```
 
 To run it only when the lock changes, add `paths: [flake.lock]` under
 `pull_request`.
+
+## Versions
+
+Releases are tagged `vX.Y.Z`; there is no moving `v1`-style tag. Pin the
+action by commit with the version as a comment, which Renovate's
+`helpers:pinGitHubActionDigestsToSemver` keeps current:
+
+```yaml
+- uses: nix-gizmos/flake-diff-action@<commit> # v0.1.0
+```
+
+While the major version is 0, inputs, outputs, CLI flags and the report
+format may change between minor releases; the release notes call it out.
+
+## Development
+
+```sh
+nix develop          # shellcheck, git-cliff, gh, gsemver
+make hooks           # pre-commit lints, pre-push refuses unsigned commits
+make lint            # shellcheck on every script
+make test            # nix flake check: packages, action.sh, the comment tests
+```
+
+`make release-tag` cuts a release from the Conventional Commit history, and
+CI publishes it with notes from `cliff.toml`.
 
 ## License
 
