@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Runs the linter before a commit is created. Install with `make hooks` (sets
+# core.hooksPath to this directory). Bypass a single commit with `--no-verify`.
+set -euo pipefail
+
+# Lint through the flake dev shell so shellcheck is the version pinned in
+# flake.lock (matching CI), not whatever happens to be on PATH.
+if ! command -v nix >/dev/null 2>&1; then
+	echo "pre-commit: nix not found; the linter is provided by the flake dev shell" >&2
+	exit 1
+fi
+
+exec nix develop --command make lint

@@ -3,7 +3,10 @@ description: >-
   Report what a flake.lock change does to what a flake builds, from
   evaluation alone, as a pull request comment. Composite: needs `nix` on
   PATH, nothing else; no Node.
-author: systemstart
+author: nix-gizmos
+branding:
+  icon: git-pull-request
+  color: blue
 
 inputs:
   attributes:

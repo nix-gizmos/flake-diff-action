@@ -1,0 +1,55 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    "helpers:pinGitHubActionDigests",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
+  "schedule": [
+    "before 9am on monday"
+  ],
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 7am on monday"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "commitMessagePrefix": "ci(deps):"
+    },
+    {
+      "matchManagers": [
+        "nix"
+      ],
+      "commitMessagePrefix": "chore(deps):"
+    },
+    {
+      "matchManagers": [
+        "nix"
+      ],
+      "matchPackageNames": [
+        "nixpkgs"
+      ],
+      "commitMessageExtra": "({{{newVersion}}})"
+    },
+    {
+      "description": "cachix-action and nix-installer-action tag their releases vN only, with no vN.N.N. helpers:pinGitHubActionDigestsToSemver extracts vN.N.N tags only, so it would find no versions for them; take vN here.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchPackageNames": [
+        "cachix/cachix-action",
+        "DeterminateSystems/nix-installer-action"
+      ],
+      "extractVersion": "^(?<version>v\\d+)$"
+    }
+  ]
+}

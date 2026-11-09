@@ -2,6 +2,7 @@
 # What does a flake.lock change do to what this flake builds?
 #
 #   flake-diff [--base REF] [--key REGEX] [--all] [--impure] [--build] ATTR...
+#   flake-diff --version
 #
 #   --base REF    compare against flake.lock as committed at REF (default HEAD)
 #   --key REGEX   list only packages whose name matches REGEX (an awk ERE,
@@ -34,6 +35,7 @@ while [ $# -gt 0 ]; do
     --all) all=1; shift ;;
     --impure) impure=(--impure); shift ;;
     --build) build=1; shift ;;
+    --version) echo "flake-diff ${FLAKE_DIFF_VERSION:-unknown}"; exit 0 ;;
     -h|--help) sed -n '/^# What does a flake.lock/,/^set -euo/s/^# \{0,1\}//p' "${BASH_SOURCE[0]}"; exit 0 ;;
     -*) echo "flake-diff: unknown option $1 (try --help)" >&2; exit 2 ;;
     *) attrs+=("$1"); shift ;;
