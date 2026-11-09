@@ -162,7 +162,7 @@ format may change between minor releases; the release notes call it out.
 
 ```sh
 nix develop          # shellcheck, git-cliff, gh, gsemver
-make hooks           # pre-commit lints, pre-push refuses unsigned commits
+make hooks           # pre-commit lints
 make lint            # shellcheck on every script
 make test            # nix flake check: packages, action.sh, the comment tests
 ```
