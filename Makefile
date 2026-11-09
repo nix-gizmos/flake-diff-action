@@ -1,12 +1,11 @@
-SCRIPTS := flake-diff.sh comment.sh action.sh .githooks/pre-commit .githooks/pre-push tests/comment.sh
+SCRIPTS := flake-diff.sh comment.sh action.sh .githooks/pre-commit tests/comment.sh
 
 .PHONY: all lint test hooks release release-notes release-tag release-tag-preview clean
 
 all: lint test
 
 # Points git at the version-controlled hooks in .githooks (pre-commit runs the
-# linter, pre-push rejects unsigned commits). Per-clone, so each contributor
-# runs it once.
+# linter). Per-clone, so each contributor runs it once.
 hooks:
 	git config core.hooksPath .githooks
 	@echo "installed git hooks from .githooks"
